@@ -1,25 +1,9 @@
-import axios from 'axios';
+
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 
-const BASE_URL = 'https://pixabay.com/api/';
-const API_KEY = '39087193-ce55181815bd20642011f6dde';
-
-async function getImage(page = 1, value) {
-  axios.defaults.params = {
-    key: API_KEY,
-    q: value,
-    image_type: 'photo',
-    orientation: 'horizontal',
-    safesearch: true,
-    page,
-    per_page: 40,
-  };
-  const response = await axios.get(BASE_URL);
-  return response.data;
-}
-console.log(getImage);
+import { getImage } from './api';
 
 const refs = {
   form: document.getElementById('search-form'),
@@ -27,6 +11,7 @@ const refs = {
   loadMore: document.querySelector('.load-more'),
   spanLimit: document.querySelector('.span-js'),
 };
+
 refs.form.addEventListener('submit', onSubmit);
 
 let page = 1;
@@ -36,7 +21,7 @@ let totalHitsImg = 0;
 function onSubmit(e) {
   e.preventDefault();
   page = 1;
-  // clearContent();
+  clearContent();
 
   value = e.currentTarget.elements.searchQuery.value.trim();
   if (!value)
@@ -45,13 +30,12 @@ function onSubmit(e) {
     );
 
   takeImage();
-}
+};
 
-// function clearContent() {
-//   totalHitsImg = 0;
-//   refs.spanLimit.textContent = '';
-//   refs.gallery.innerHTML = '';
-// }
+function clearContent() {
+  totalHitsImg = 0;
+  refs.gallery.innerHTML = '';
+}
 
 async function takeImage() {
   try {
@@ -65,15 +49,15 @@ async function takeImage() {
       return Notify.failure(
         'Sorry, there are no images matching your search query. Please try again.'
       );
-    }
+    };
 
-    for (let i = 0; i < response.markup.length; i++) {
+    for (let i = 0; i < response.hits.length; i++) {
       const newImage = createMarkup([response.hits[i]]);
       refs.gallery.insertAdjacentHTML('beforeend', newImage);
       lightbox.refresh();
     }
     page += 1;
-    totalHitsImg += response.markup.length;
+    totalHitsImg += response.hits.length;
 
     if (totalHitsImg >= response.totalHits) {
       refs.spanLimit.textContent =
@@ -85,22 +69,8 @@ async function takeImage() {
     );
   }
 }
-
-window.addEventListener('scroll', () => {
-  if (
-    window.scrollY + window.innerHeight >=
-    document.documentElement.scrollHeight
-  ) {
-    takeImage();
-  }
-});
-
-let lightbox = new SimpleLightbox('.gallery a', {
-  captionDelay: 250,
-});
-
-function createMarkup(markup) {
-  return markup
+function createMarkup(hits) {
+  return hits
     .map(
       ({
         webformatURL,
@@ -116,23 +86,38 @@ function createMarkup(markup) {
     </a>
     <div class="info">
       <p class="info-item">
-        <b>Likes</b>
+        <b>Likes:</b>
         ${likes}
       </p>
       <p class="info-item">
-        <b>Views</b>
+        <b>Views:</b>
         ${views}
       </p>
       <p class="info-item">
-        <b>Comments</b>
+        <b>Comments:</b>
         ${comments}
       </p>
       <p class="info-item">
-        <b>Downloads</b>
+        <b>Downloads:</b>
         ${downloads}
       </p>
     </div>
   </div>`
     )
     .join('');
-}
+};
+
+window.addEventListener('scroll', () => {
+  if (
+    window.scrollY + window.innerHeight >=
+    document.documentElement.scrollHeight
+  ) {
+    takeImage();
+  }
+});
+
+let lightbox = new SimpleLightbox('.gallery a', {
+  captionDelay: 250,
+});
+
+
