@@ -35,6 +35,7 @@ function onSubmit(e) {
 function clearContent() {
   totalHitsImg = 0;
   refs.gallery.innerHTML = '';
+  refs.spanLimit.textContent = '';
 }
 
 async function takeImage() {
@@ -113,7 +114,7 @@ window.addEventListener('scroll', () => {
     document.documentElement.scrollHeight
   ) {
     takeImage();
-  }
+  };
 });
 
 let lightbox = new SimpleLightbox('.gallery a', {
